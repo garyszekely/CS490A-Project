@@ -44,7 +44,9 @@ def train_stupid_backoff(sentence_tokens, alpha):
 def test_model(model, masked_sentence_tokens, masked_words):
     total_correct = 0
     total_word_length = 0
+    total_related = 0
     for i, masked_sentence_token in enumerate(masked_sentence_tokens):
+        masked_word = masked_words[i]
         j = masked_sentence_token.index('<MASK>')
         max_word = None
         if j > 1:
@@ -57,9 +59,18 @@ def test_model(model, masked_sentence_tokens, masked_words):
         else:
             max_word = model.generate(1)
 
-        if max_word == masked_words[i]:
+        if max_word == masked_word:
             total_word_length += len(max_word)
             total_correct += 1
+            total_related += 1
+        else:
+            for synset in nltk.corpus.wordnet.synsets(masked_word):
+                for lemma in synset.lemmas():
+                    if lemma.name() == max_word:
+                        total_related += 1
+                        break
+
     model_exact_accuracy = (total_correct / len(masked_sentence_tokens)) * 100
+    model_relative_accuracy = (total_related / len(masked_sentence_tokens)) * 100
     model_avg_word_length = total_word_length / total_correct
-    return model_exact_accuracy, model_avg_word_length
+    return model_exact_accuracy, model_relative_accuracy, model_avg_word_length
