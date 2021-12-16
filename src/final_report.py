@@ -43,6 +43,7 @@ def train_stupid_backoff(sentence_tokens, alpha):
 
 def test_model(model, masked_sentence_tokens, masked_words):
     total_correct = 0
+    total_word_length = 0
     for i, masked_sentence_token in enumerate(masked_sentence_tokens):
         j = masked_sentence_token.index('<MASK>')
         max_word = None
@@ -57,5 +58,8 @@ def test_model(model, masked_sentence_tokens, masked_words):
             max_word = model.generate(1)
 
         if max_word == masked_words[i]:
+            total_word_length += len(max_word)
             total_correct += 1
-    return (total_correct / len(masked_sentence_tokens)) * 100
+    model_exact_accuracy = (total_correct / len(masked_sentence_tokens)) * 100
+    model_avg_word_length = total_word_length / total_correct
+    return model_exact_accuracy, model_avg_word_length
